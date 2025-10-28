@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailMenuDescription = document.getElementById('detail-menu-description') as HTMLElement;
     const detailMenuPrice = document.getElementById('detail-menu-price') as HTMLElement;
     const detailMenuOptionsContainer = document.getElementById('detail-menu-options-container') as HTMLElement;
+    const footerTotalPrice = document.getElementById('footer-total-price') as HTMLElement;
 
 
     // --- DOM ELEMENTS (Admin View - PIXEL PERFECT) ---
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             introImages: ["https://i.ibb.co/W2N2K2z/kyochon-intro-1.jpg", "https://i.ibb.co/wJMyMhB/kyochon-intro-2.jpg", "https://i.ibb.co/z5wF2Mh/kyochon-intro-3.jpg", "https://i.ibb.co/FqsxXN3/kyochon-intro-4.jpg"]
         },
         categories: [{ id: 'popular', name: '인기 메뉴' }, { id: 'side', name: '사이드 메뉴' }],
-        menu: [ { id: 1, categoryId: 'popular', name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://i.ibb.co/gR3d25R/kyochon-detail-menu.jpg', options: '음료 추가선택\n서비스음료 미제공,0\n콜라245ml(1,000),1000\n콜라500ml(2,000),2000\n콜라1.25L(3,000),3000\n사이드메뉴\n치즈볼,3000' } ]
+        menu: [ { id: 1, categoryId: 'popular', name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://i.ibb.co/gR3d25R/kyochon-detail-menu.jpg', options: '음료추가|max_4\n콜라 245ml,1000\n콜라 355ml,1500\n콜라 500ml,2000\n콜라 1.25L,2500\n추가선택|max_5\n치킨무,1000\n양념소스,500\n머스타드소스,500' } ]
     };
 
     let appData: AppData;
@@ -170,6 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error saving data", e);
             alert("데이터 저장 실패. 이미지 파일이 너무 클 수 있습니다.");
         }
+    }
+
+    function parsePrice(priceStr: string | null | undefined): number {
+        if (!priceStr) return 0;
+        return parseInt(priceStr.replace(/[^0-9]/g, ''), 10) || 0;
     }
     
     function showView(viewName: 'home' | 'customer' | 'admin' | 'store-info' | 'menu-detail') {
@@ -255,30 +261,67 @@ document.addEventListener('DOMContentLoaded', () => {
         detailMenuDescription.textContent = item.description;
         detailMenuPrice.textContent = item.price;
         
+        const basePrice = parsePrice(item.price);
+        footerTotalPrice.textContent = `${basePrice.toLocaleString()}원`;
+
         detailMenuOptionsContainer.innerHTML = ''; // Clear previous options
         if (item.options) {
-            let currentGroupHTML = '';
-            const lines = item.options.split('\n').filter(line => line.trim() !== '');
-
-            lines.forEach(line => {
-                if (line.includes(',')) {
-                    const [name, price] = line.split(',');
-                    const formattedPrice = `+${parseInt(price).toLocaleString()}원`;
-                    currentGroupHTML += `
-                        <div class="option-item">
-                            <span>${name}</span>
-                            <span>${formattedPrice}</span>
-                        </div>`;
-                } else {
-                    if (currentGroupHTML) {
-                        detailMenuOptionsContainer.innerHTML += currentGroupHTML + '</div>';
+            const groups = item.options.split('\n').filter(line => line.trim() !== '');
+            let currentGroup: { element: HTMLElement; max: number | null } | null = null;
+    
+            groups.forEach(line => {
+                const lastCommaIndex = line.lastIndexOf(',');
+                
+                // An option line has a name and a price separated by the *last* comma.
+                if (lastCommaIndex > 0) { // It's an option item. `> 0` ensures there's a name before the comma.
+                    if (currentGroup) {
+                        const name = line.substring(0, lastCommaIndex).trim();
+                        const priceStr = line.substring(lastCommaIndex + 1).trim();
+                        const price = parsePrice(priceStr);
+                        const optionId = `option-${Date.now()}-${Math.random()}`;
+                        const formattedPrice = `+${price.toLocaleString()}원`;
+                        const optionHTML = `
+                            <div class="option-item">
+                                <input type="checkbox" id="${optionId}" data-price="${price}">
+                                <label for="${optionId}">
+                                    <span class="option-name">${name}</span>
+                                    <span class="option-price">${formattedPrice}</span>
+                                </label>
+                            </div>`;
+                        currentGroup.element.innerHTML += optionHTML;
                     }
-                    currentGroupHTML = `<div class="options-group">
-                                            <h3 class="options-group-title">${line}</h3>`;
+                } else { // This is a group title
+                    if (currentGroup) {
+                        detailMenuOptionsContainer.appendChild(currentGroup.element);
+                        detailMenuOptionsContainer.insertAdjacentHTML('beforeend', '<div class="divider thick"></div>');
+                    }
+                    
+                    let groupTitle = line;
+                    let maxSelection: number | null = null;
+                    if (line.includes('|max_')) {
+                        const parts = line.split('|max_');
+                        groupTitle = parts[0];
+                        maxSelection = parseInt(parts[1], 10);
+                    }
+    
+                    const groupElement = document.createElement('div');
+                    groupElement.className = 'options-group';
+                    if (maxSelection) {
+                        groupElement.dataset.maxSelection = String(maxSelection);
+                    }
+    
+                    groupElement.innerHTML = `
+                        <div class="options-group-header">
+                            <h3 class="options-group-title">${groupTitle}</h3>
+                            ${maxSelection ? `<span class="max-selection-badge">최대 ${maxSelection}개 선택</span>` : ''}
+                        </div>`;
+                    currentGroup = { element: groupElement, max: maxSelection };
                 }
             });
-            if (currentGroupHTML) {
-                 detailMenuOptionsContainer.innerHTML += currentGroupHTML + '</div><div class="divider thick"></div>';
+    
+            if (currentGroup) {
+                detailMenuOptionsContainer.appendChild(currentGroup.element);
+                 detailMenuOptionsContainer.insertAdjacentHTML('beforeend', '<div class="divider thick"></div>');
             }
         }
     }
@@ -614,7 +657,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     mainMenuList.addEventListener('click', (e) => {
-        // FIX: The `closest` method returns type `Element`, which does not have the `dataset` property. Cast to `HTMLElement` to fix this.
         const menuItemEl = (e.target as HTMLElement).closest<HTMLElement>('.menu-item');
         if (menuItemEl && menuItemEl.dataset.menuId) {
             const menuId = parseInt(menuItemEl.dataset.menuId);
@@ -624,6 +666,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 showView('menu-detail');
             }
         }
+    });
+
+    detailMenuOptionsContainer.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.type !== 'checkbox') return;
+    
+        const group = target.closest<HTMLElement>('.options-group');
+        if (group && group.dataset.maxSelection) {
+            const max = parseInt(group.dataset.maxSelection, 10);
+            const checkboxes = group.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        
+            if (checkedCount > max) {
+                target.checked = false;
+                 // Price will not be updated if selection is invalid
+                return;
+            }
+        }
+    
+        // Recalculate total price
+        const basePrice = parsePrice(detailMenuPrice.textContent);
+        let optionsPrice = 0;
+        const checkedOptions = detailMenuOptionsContainer.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:checked');
+        
+        checkedOptions.forEach(checkbox => {
+            optionsPrice += parseInt(checkbox.dataset.price || '0', 10);
+        });
+    
+        const totalPrice = basePrice + optionsPrice;
+        footerTotalPrice.textContent = `${totalPrice.toLocaleString()}원`;
     });
 
     loadData();

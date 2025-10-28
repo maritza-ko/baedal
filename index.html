@@ -117,7 +117,13 @@
                 <div id="detail-menu-options-container"></div>
             </main>
             <footer class="cart-footer">
-                <button id="add-to-cart-btn">장바구니 담기</button>
+                <div class="price-info">
+                    <span id="footer-total-price"></span>
+                </div>
+                <button id="add-to-cart-btn" class="order-now-btn">
+                    <span class="order-count">1</span>
+                    바로 주문하기
+                </button>
             </footer>
         </div>
 
@@ -232,8 +238,8 @@
                         <label>설명: <textarea id="admin-menu-description" required></textarea></label>
                         <label>가격: <input type="text" id="admin-menu-price" required></label>
                         <label>리뷰 수 (선택): <input type="number" id="admin-menu-reviews"></label>
-                        <label>메뉴 옵션 (그룹제목 엔터 이름,가격):
-                            <textarea id="admin-menu-options" rows="5" placeholder="예시:&#10;음료 추가선택&#10;서비스음료 미제공,0&#10;콜라245ml(1,000),1000"></textarea>
+                        <label>메뉴 옵션 (그룹이름|max_N 엔터 이름,가격):
+                            <textarea id="admin-menu-options" rows="5" placeholder="예시:&#10;음료추가|max_4&#10;콜라 245ml, 1000&#10;치즈볼, +3,000원"></textarea>
                         </label>
                         <label>메뉴 사진:
                             <div id="admin-menu-image-dropzone" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img src="" alt="미리보기" class="image-preview"><span class="drop-zone-prompt">이미지를 드래그하거나 여기를 클릭하세요</span></div>

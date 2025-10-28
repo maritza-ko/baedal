@@ -154,8 +154,8 @@ body {
 .info-list-item { display: flex; }
 .info-list-item .label { width: 80px; flex-shrink: 0; color: var(--text-color-light); }
 .info-list-item .value { font-weight: 500; }
-.divider { height: 1px; background-color: #F1F3F5; margin: 24px -16px; }
-.divider.thick { height: 8px; }
+.divider { height: 1px; background-color: #F1F3F5; margin: 0 -16px; }
+.divider.thick { height: 8px; background-color: #F8F9FA; margin: 0 -16px; border: none;}
 .store-intro-section { padding: 24px 0; }
 .store-intro-section h2 { font-size: 18px; margin-bottom: 16px; }
 .store-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
@@ -166,21 +166,72 @@ body {
 /* --- MENU DETAIL VIEW --- */
 #menu-detail-view { background-color: var(--card-background); }
 #menu-detail-view .app-header { background: transparent; border-bottom: none; position: absolute; top: 0; left: 0; width: 100%; }
-.menu-detail-main { padding-bottom: 90px; } /* Space for footer */
+.menu-detail-main { padding-bottom: 120px; } /* Space for footer */
 #detail-menu-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; }
 .menu-detail-info-box { padding: 24px 16px; }
 .menu-detail-info-box h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
 .menu-detail-info-box p { font-size: 16px; color: var(--text-color-light); margin-bottom: 16px; line-height: 1.5; }
 .info-link-btn { background-color: #f1f3f5; border: none; color: var(--text-color-light); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
 .menu-detail-price-box { display: flex; justify-content: space-between; align-items: center; padding: 24px 16px; font-size: 18px; font-weight: 700; }
+
+/* Menu Options Styling */
 #detail-menu-options-container { padding: 0 16px; }
-.options-group-title { font-size: 18px; font-weight: 700; padding: 24px 0 8px 0; border-bottom: 1px solid var(--border-color); }
-.option-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); }
-.option-item:last-child { border-bottom: none; }
-.option-item span:first-child { font-size: 16px; }
-.option-item span:last-child { font-size: 16px; font-weight: 500; }
-.cart-footer { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-background); padding: 16px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); }
-.cart-footer button { width: 100%; padding: 16px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; }
+.options-group-header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0 8px 0; }
+.options-group-title { font-size: 18px; font-weight: 700; }
+.max-selection-badge { background-color: #F1F3F5; color: var(--text-color-light); font-size: 13px; padding: 4px 8px; border-radius: 12px; font-weight: 500;}
+.option-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+.options-group .option-item:last-of-type { border-bottom: none; }
+.option-item input[type="checkbox"] { width: 24px; height: 24px; margin-right: 12px; accent-color: var(--primary-color); }
+.option-item label { flex-grow: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.option-item .option-name { font-size: 16px; }
+.option-item .option-price { font-size: 16px; font-weight: 500; }
+
+
+.cart-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #f6f3ff;
+    padding: 16px;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    border-top: 1px solid #e9e5ff;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+.price-info {
+    font-size: 20px;
+    font-weight: 900;
+}
+.order-now-btn {
+    background-color: #00D1C4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.order-count {
+    background-color: black;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+}
 
 
 /* --- Admin View --- */
