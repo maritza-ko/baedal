@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교촌치킨 산본1호점 - 배달앱 UI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HOME VIEW -->
+        <div id="home-view">
+            <div id="home-image-container">
+                <a href="#" id="clickable-chicken-area" title="치킨 카테고리"></a>
+            </div>
+        </div>
+        
+        <!-- CUSTOMER VIEW -->
+        <div id="customer-view" class="hidden">
+            <header class="app-header">
+                <svg id="back-to-home-btn" class="icon" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
+                <h1 id="store-name-header"></h1>
+                <div class="header-icons">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                </div>
+            </header>
+            <main>
+                <div class="store-hero-slider">
+                    <div class="slides-container" id="slides-container"></div>
+                    <div class="slide-dots" id="slide-dots"></div>
+                </div>
+                <div class="store-info-container">
+                    <div class="promo-banner new-promo" id="promo-banner-main"></div>
+                    <div class="store-title-bar">
+                        <h2 id="store-name-main"></h2>
+                        <svg class="icon heart-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                    </div>
+                    <div class="store-rating" id="store-rating-display"></div>
+                    <div class="store-badges" id="store-badges"></div>
+                    <div class="store-info-link" id="store-info-link">가게정보·원산지 ></div>
+                    
+                    <div class="delivery-pickup-tabs">
+                        <button class="tab active">배달</button>
+                        <button class="tab">픽업</button>
+                    </div>
+
+                    <div class="delivery-info">
+                        <div class="info-row">
+                            <span class="label">최소주문</span>
+                            <div class="value-group">
+                                <span class="value" id="min-order-display"></span>
+                                <button class="info-btn">배달 안내</button>
+                            </div>
+                        </div>
+                        <div class="info-row multi-line">
+                            <span class="label">알뜰배달</span>
+                            <div class="value-group align-right">
+                                <div class="thrifty-delivery">
+                                    <span class="tag" id="thrifty-delivery-tag"></span>
+                                    <div>
+                                        <span class="promo-text" id="promo-delivery-text"></span>
+                                        <span class="original-price" id="original-delivery-fee"></span>
+                                    </div>
+                                </div>
+                                <svg class="icon chevron-down" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="operation-info">
+                        <span id="operation-status"></span>
+                        <button class="notification-btn">
+                            <svg class="icon bell-icon" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"></path></svg>
+                            오픈알림
+                        </button>
+                    </div>
+                    <div class="coupon-banner" id="coupon-banner"></div>
+                </div>
+
+                <div class="menu-container">
+                    <nav class="menu-tabs" id="menu-tabs-container"></nav>
+                    <section class="menu-section">
+                        <div id="main-menu-list"></div>
+                    </section>
+                </div>
+            </main>
+        </div>
+        
+        <!-- MENU DETAIL VIEW -->
+        <div id="menu-detail-view" class="hidden">
+             <header class="app-header">
+                <svg id="back-to-customer-from-detail-btn" class="icon" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
+                <h1></h1>
+                <div class="header-icons">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                </div>
+            </header>
+            <main class="menu-detail-main">
+                <img id="detail-menu-image" src="" alt="Menu Image">
+                <div class="menu-detail-info-box">
+                    <h2 id="detail-menu-name"></h2>
+                    <p id="detail-menu-description"></p>
+                    <button class="info-link-btn">영양성분 및 알레르기성분 표시 보기</button>
+                </div>
+                <div class="divider"></div>
+                <div class="menu-detail-price-box">
+                    <span>가격</span>
+                    <span id="detail-menu-price"></span>
+                </div>
+                <div class="divider thick"></div>
+                <div id="detail-menu-options-container"></div>
+            </main>
+            <footer class="cart-footer">
+                <button id="add-to-cart-btn">장바구니 담기</button>
+            </footer>
+        </div>
+
+
+        <!-- STORE INFO VIEW -->
+        <div id="store-info-view" class="hidden">
+            <header class="app-header">
+                <svg id="back-to-customer-btn" class="icon" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
+                <h1>가게정보·원산지</h1>
+                <div class="header-icons">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                </div>
+            </header>
+            <main class="store-info-main">
+                <section class="info-list-section" id="info-list-section"></section>
+                <div class="divider"></div>
+                <section class="store-intro-section">
+                    <h2>가게 소개</h2>
+                    <div class="store-photo-grid" id="store-photo-grid"></div>
+                    <p id="store-intro-text"></p>
+                </section>
+            </main>
+        </div>
+
+        <!-- ADMIN PANEL -->
+        <div id="admin-view" class="hidden">
+            <header class="app-header">
+                <h1>사장님 관리 페이지</h1>
+            </header>
+            <main class="admin-main">
+                <section class="admin-section">
+                    <h2>데이터 관리</h2>
+                    <input type="file" id="import-data-input" accept="application/json" class="hidden">
+                    <div class="data-management-actions">
+                        <button type="button" id="download-data-btn">현재 데이터 다운로드</button>
+                        <button type="button" id="import-data-btn">데이터 불러오기</button>
+                    </div>
+                </section>
+                <section class="admin-section">
+                    <h2>가게 정보 관리 (메인 페이지)</h2>
+                    <form id="store-info-form" class="admin-form">
+                        <label>앱 홈 화면 배경 이미지:
+                            <div id="admin-home-image-dropzone" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img src="" alt="미리보기" class="image-preview"><span class="drop-zone-prompt">홈 화면 이미지를 드래그하거나 여기를 클릭하세요</span></div>
+                        </label>
+                        <label>가게 이름: <input type="text" id="admin-store-name" required></label>
+                        <label>대표 사진 슬라이더 (최대 3개):
+                            <div class="multi-image-uploader">
+                                <div id="admin-hero-image-dropzone-1" class="image-drop-zone small"><input type="file" accept="image/*" class="image-input-hidden"><img src="" class="image-preview"><span class="drop-zone-prompt">#1</span></div>
+                                <div id="admin-hero-image-dropzone-2" class="image-drop-zone small"><input type="file" accept="image/*" class="image-input-hidden"><img src="" class="image-preview"><span class="drop-zone-prompt">#2</span></div>
+                                <div id="admin-hero-image-dropzone-3" class="image-drop-zone small"><input type="file" accept="image/*" class="image-input-hidden"><img src="" class="image-preview"><span class="drop-zone-prompt">#3</span></div>
+                            </div>
+                        </label>
+                        <label>프로모션 배너 문구: <input type="text" id="admin-promo-banner-main"></label>
+                        <label>별점: <input type="number" step="0.1" id="admin-rating" required></label>
+                        <label>리뷰 수: <input type="number" id="admin-review-count" required></label>
+                        <label>가게 배지 (쉼표로 구분): <input type="text" id="admin-badges" placeholder="예: 소비쿠폰, 세스코 멤버스"></label>
+                        <hr>
+                        <h3>배달 정보 섹션</h3>
+                        <label>최소 주문 금액: <input type="text" id="admin-min-order" required></label>
+                        <label>알뜰배달 태그 문구: <input type="text" id="admin-thrifty-delivery-tag" placeholder="예: 가장 저렴해요"></label>
+                        <label>알뜰배달 프로모션 문구: <input type="text" id="admin-promo-delivery-text" placeholder="예: 첫주문 무료배달"></label>
+                        <label>알뜰배달 원래 가격 (취소선): <input type="text" id="admin-original-delivery-fee" placeholder="예: 1,900원"></label>
+                        <hr>
+                        <h3>운영 정보 섹션</h3>
+                        <label>운영 안내 문구: <input type="text" id="admin-operation-status"></label>
+                        <label>소비쿠폰 안내 문구: <input type="text" id="admin-coupon-banner"></label>
+                        
+                        <button type="submit">가게 정보 저장</button>
+                    </form>
+                </section>
+
+                <section class="admin-section">
+                    <h2>가게 상세정보 관리 (가게정보·원산지 페이지)</h2>
+                    <form id="store-details-form" class="admin-form">
+                        <label>주소: <input type="text" id="admin-address"></label>
+                        <label>운영시간: <input type="text" id="admin-hours"></label>
+                        <label>휴무일: <input type="text" id="admin-holidays"></label>
+                        <label>전화번호: <input type="text" id="admin-phone"></label>
+                        <label>편의시설: <input type="text" id="admin-facilities"></label>
+                        <label>가게 소개글: <textarea id="admin-intro-text"></textarea></label>
+                        <label>가게 소개 사진 (4개):
+                            <div class="multi-image-uploader grid-2x2">
+                                <div id="admin-intro-image-1" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img class="image-preview"><span class="drop-zone-prompt">소개 #1</span></div>
+                                <div id="admin-intro-image-2" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img class="image-preview"><span class="drop-zone-prompt">소개 #2</span></div>
+                                <div id="admin-intro-image-3" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img class="image-preview"><span class="drop-zone-prompt">소개 #3</span></div>
+                                <div id="admin-intro-image-4" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img class="image-preview"><span class="drop-zone-prompt">소개 #4</span></div>
+                            </div>
+                        </label>
+                        <button type="submit">상세 정보 저장</button>
+                    </form>
+                </section>
+                
+                <section class="admin-section">
+                    <h2>카테고리 관리</h2>
+                    <form id="category-form" class="admin-form">
+                        <label>새 카테고리 이름: <input type="text" id="admin-new-category-name" required></label>
+                        <button type="submit">카테고리 추가</button>
+                    </form>
+                    <h3>카테고리 목록</h3>
+                    <div id="admin-category-list-container"></div>
+                </section>
+
+                <section class="admin-section">
+                    <h2>메뉴 관리</h2>
+                    <form id="menu-item-form" class="admin-form">
+                        <input type="hidden" id="admin-menu-id">
+                        <label>카테고리:
+                            <select id="admin-menu-category" required></select>
+                        </label>
+                        <label>메뉴 이름: <input type="text" id="admin-menu-name" required></label>
+                        <label>태그 (쉼표로 구분): <input type="text" id="admin-menu-tags" placeholder="예: [인기], [대표]"></label>
+                        <label>설명: <textarea id="admin-menu-description" required></textarea></label>
+                        <label>가격: <input type="text" id="admin-menu-price" required></label>
+                        <label>리뷰 수 (선택): <input type="number" id="admin-menu-reviews"></label>
+                        <label>메뉴 옵션 (그룹제목 엔터 이름,가격):
+                            <textarea id="admin-menu-options" rows="5" placeholder="예시:&#10;음료 추가선택&#10;서비스음료 미제공,0&#10;콜라245ml(1,000),1000"></textarea>
+                        </label>
+                        <label>메뉴 사진:
+                            <div id="admin-menu-image-dropzone" class="image-drop-zone"><input type="file" accept="image/*" class="image-input-hidden"><img src="" alt="미리보기" class="image-preview"><span class="drop-zone-prompt">이미지를 드래그하거나 여기를 클릭하세요</span></div>
+                        </label>
+                        <button type="submit" id="admin-menu-submit-btn">메뉴 추가</button>
+                        <button type="button" id="admin-menu-clear-btn" class="secondary">취소</button>
+                    </form>
+
+                    <h3>메뉴 목록</h3>
+                    <div id="admin-menu-list-container"></div>
+                </section>
+            </main>
+        </div>
+
+        <!-- VIEW TOGGLE BUTTON -->
+        <button id="view-toggle-btn" title="Switch View">⚙️</button>
+    </div>
+    <script type="module" src="index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
