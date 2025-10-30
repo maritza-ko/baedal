@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const DB_KEY = 'baedal_app_data_v4_kyochon_pixel_perfect';
 
@@ -24,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         facilities: string;
         introText: string;
         introImages: string[];
+        originInfo: string;
     }
 
     interface MenuItem { id: number; categoryIds: string[]; name: string; tags: string[]; description: string; price: string; reviews: string | null; image: string; options?: string; }
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let activeCategoryId: string | null = null;
     let editingCategoryId: string | null = null;
+    let adminSelectedCategoryIdForSort: string = 'all';
     let currentView: 'home' | 'customer' | 'admin' | 'store-info' | 'menu-detail' = 'home';
     let slideInterval: ReturnType<typeof setInterval> | null = null;
     let currentSlideIndex = 0;
@@ -72,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const infoListSection = document.getElementById('info-list-section') as HTMLElement;
     const storePhotoGrid = document.getElementById('store-photo-grid') as HTMLElement;
     const storeIntroText = document.getElementById('store-intro-text') as HTMLElement;
+    const storeExtraInfoSection = document.getElementById('store-extra-info-section') as HTMLElement;
 
     // --- DOM ELEMENTS (Menu Detail View) ---
     const detailMenuImage = document.getElementById('detail-menu-image') as HTMLImageElement;
@@ -112,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminPhone = document.getElementById('admin-phone') as HTMLInputElement;
     const adminFacilities = document.getElementById('admin-facilities') as HTMLInputElement;
     const adminIntroText = document.getElementById('admin-intro-text') as HTMLTextAreaElement;
+    const adminOriginInfo = document.getElementById('admin-origin-info') as HTMLTextAreaElement;
     const adminIntroImageDropzones = [
         document.getElementById('admin-intro-image-1') as HTMLElement,
         document.getElementById('admin-intro-image-2') as HTMLElement,
@@ -136,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminMenuSubmitBtn = document.getElementById('admin-menu-submit-btn') as HTMLButtonElement;
     const adminMenuClearBtn = document.getElementById('admin-menu-clear-btn') as HTMLButtonElement;
     const adminMenuListContainer = document.getElementById('admin-menu-list-container') as HTMLElement;
+    const adminMenuSortCategorySelect = document.getElementById('admin-menu-sort-category') as HTMLSelectElement;
 
     const initialData: AppData = {
         storeInfo: {
@@ -155,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
             hours: "매일 - 오후 12:00 ~ 밤 12:00", holidays: "연중무휴", phone: "050-7538-6538",
             facilities: "주차, 무선 인터넷",
             introText: "안녕하세요! 고객님~ 교촌 산본 1호점입니다.\n고객님들의 만족을 위해 최선을 다하고 있습니다.",
-            introImages: ["https://i.ibb.co/W2N2K2z/kyochon-intro-1.jpg", "https://i.ibb.co/wJMyMhB/kyochon-intro-2.jpg", "https://i.ibb.co/z5wF2Mh/kyochon-intro-3.jpg", "https://i.ibb.co/FqsxXN3/kyochon-intro-4.jpg"]
+            introImages: ["https://i.ibb.co/W2N2K2z/kyochon-intro-1.jpg", "https://i.ibb.co/wJMyMhB/kyochon-intro-2.jpg", "https://i.ibb.co/z5wF2Mh/kyochon-intro-3.jpg", "https://i.ibb.co/FqsxXN3/kyochon-intro-4.jpg"],
+            originInfo: "닭고기 (뼈, 순살): 국내산\n쌀: 국내산\n배추김치 (배추, 고춧가루): 국내산"
         },
         categories: [
             { id: 'popular', name: '인기메뉴' }, 
@@ -189,8 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             saveData(); // Save the migrated data back to localStorage
         }
+        
+        if (!appData.storeInfo.originInfo) {
+            appData.storeInfo.originInfo = initialData.storeInfo.originInfo;
+        }
+
 
         activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
+        adminSelectedCategoryIdForSort = appData.categories.length > 0 ? appData.categories[0].id : 'all';
     }
     function saveData() {
         try { localStorage.setItem(DB_KEY, JSON.stringify(appData)); } catch (e) {
@@ -265,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="menu-tab ${cat.id === activeCategoryId ? 'active' : ''}" data-category-id="${cat.id}">${cat.name}</button>
         `).join('');
 
-        const filteredMenu = activeCategoryId ? menu.filter(item => item.categoryIds.includes(activeCategoryId)) : menu;
+        const filteredMenu = activeCategoryId ? menu.filter(item => item.categoryIds.includes(activeCategoryId as string)) : menu;
         mainMenuList.innerHTML = filteredMenu.length > 0 ? filteredMenu.map(createMenuItemHTML).join('') : '<p>메뉴가 없습니다.</p>';
     }
 
@@ -279,6 +290,68 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="info-list-item"><span class="label">편의시설</span><span class="value">${facilities}</span></div>`;
         storePhotoGrid.innerHTML = introImages.map(src => `<img src="${src}" alt="가게 소개 사진">`).join('');
         storeIntroText.innerText = introText;
+        renderStoreExtraInfo();
+    }
+
+    function renderStoreExtraInfo() {
+        const { originInfo } = appData.storeInfo;
+        const storeNameForAlert = "딱마리치킨 구로점"; 
+        storeExtraInfoSection.innerHTML = `
+            <div class="info-accordion-item active">
+                <div class="info-accordion-header">
+                    <span>가게 알림</span>
+                    <svg class="info-accordion-chevron" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path></svg>
+                </div>
+                <div class="info-accordion-content">
+                    <div class="store-alert-content">
+                        <p class="alert-deco-line">✨ ✧˖° ${storeNameForAlert} °˖✧ ✨</p>
+                        <p class="alert-main-text">■ 주문 시 물티슈, 젓가락 등 요청해주시면 보내드립니다!</p>
+                        <p class="alert-sub-text">(일회용품 소진 시 제공이 어려울 수 있습니다!)</p>
+                        <p class="alert-contact-text">※ 불편하신 점 있으셨다면 매장으로 연락주시면 신속한 해결 도와드리겠습니다.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="info-accordion-item">
+                <div class="info-accordion-header">
+                    <span>가게 인증 내역</span>
+                    <svg class="info-accordion-chevron" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path></svg>
+                </div>
+                <div class="info-accordion-content">
+                    <div class="certification-item">
+                        <span class="certification-label">CESCO</span>
+                        <div class="certification-details">
+                            <div>
+                                <span class="certification-tag">세스코 멤버스</span>
+                                <span class="info-icon">ⓘ</span>
+                            </div>
+                            <span class="certification-date">2025.10. 최근 해충방제 점검월</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-accordion-item">
+                <div class="info-accordion-header">
+                    <span>가게 통계 <span class="info-icon-header">ⓘ</span></span>
+                     <svg class="info-accordion-chevron" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path></svg>
+                </div>
+                <div class="info-accordion-content">
+                    <div class="stats-grid">
+                        <span class="stats-label">최근 주문수</span><span class="stats-value">5,000+</span>
+                        <span class="stats-label">전체 리뷰수</span><span class="stats-value">2,810</span>
+                        <span class="stats-label">찜</span><span class="stats-value">1,260</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info-accordion-item">
+                <div class="info-accordion-header">
+                    <span>원산지 표기</span>
+                    <svg class="info-accordion-chevron" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path></svg>
+                </div>
+                <div class="info-accordion-content">
+                    <pre class="origin-info-pre">${originInfo}</pre>
+                </div>
+            </div>
+        `;
     }
 
     function renderMenuDetailView(item: MenuItem) {
@@ -385,26 +458,32 @@ document.addEventListener('DOMContentLoaded', () => {
         adminPhone.value = storeInfo.phone;
         adminFacilities.value = storeInfo.facilities;
         adminIntroText.value = storeInfo.introText;
+        adminOriginInfo.value = storeInfo.originInfo;
         storeInfo.introImages.forEach((src, i) => { if (adminIntroImageDropzones[i]) updateImagePreview(adminIntroImageDropzones[i], src); });
         
         renderAdminCategoryList();
         renderMenuCategoryCheckboxes();
-        adminMenuListContainer.innerHTML = appData.menu.map(createAdminMenuItemHTML).join('');
+        renderAdminMenuSortFilter();
+        renderAdminMenuList();
     }
 
     function renderAdminCategoryList() {
         adminCategoryListContainer.innerHTML = appData.categories.map(cat => {
             if (cat.id === editingCategoryId) { return `
-                <div class="admin-category-item">
+                <div class="admin-category-item" data-id="${cat.id}">
+                    <span class="drag-handle">⠿</span>
                     <input type="text" class="edit-category-input" value="${cat.name}" data-id="${cat.id}">
                     <button class="save-category-btn" data-id="${cat.id}">저장</button>
                     <button class="cancel-edit-category-btn" data-id="${cat.id}">취소</button>
                 </div>`;
             }
             return `
-                <div class="admin-category-item">
-                    <span>${cat.name}</span>
-                    <div>
+                <div class="admin-category-item" draggable="true" data-id="${cat.id}">
+                    <span class="drag-handle">⠿</span>
+                    <div class="admin-category-item-content">
+                        <span>${cat.name}</span>
+                    </div>
+                    <div class="admin-category-item-actions">
                         <button class="edit-category-btn" data-id="${cat.id}">수정</button>
                         <button class="delete-category-btn" data-id="${cat.id}">삭제</button>
                     </div>
@@ -419,13 +498,29 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
     }
+     function renderAdminMenuSortFilter() {
+        const categories = appData.categories;
+        adminMenuSortCategorySelect.innerHTML = `
+            <option value="all">전체 메뉴</option>
+            ${categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+        `;
+        adminMenuSortCategorySelect.value = adminSelectedCategoryIdForSort;
+    }
+    function renderAdminMenuList() {
+        const filteredMenu = adminSelectedCategoryIdForSort === 'all'
+            ? [...appData.menu]
+            : appData.menu.filter(item => item.categoryIds.includes(adminSelectedCategoryIdForSort));
+        
+        adminMenuListContainer.innerHTML = filteredMenu.map(createAdminMenuItemHTML).join('');
+    }
     function createAdminMenuItemHTML(item: MenuItem) { 
         const categoryNames = item.categoryIds
             .map(id => appData.categories.find(c => c.id === id)?.name)
             .filter(Boolean)
             .join(', ');
         return `
-            <div class="admin-menu-item">
+            <div class="admin-menu-item" draggable="true" data-id="${item.id}">
+                 <span class="drag-handle">⠿</span>
                 <div class="admin-menu-item-info">
                     <strong>${item.name}</strong>
                     <span>${categoryNames} | ${item.price}</span>
@@ -436,6 +531,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
     }
+    
+    adminMenuSortCategorySelect.addEventListener('change', () => {
+        adminSelectedCategoryIdForSort = adminMenuSortCategorySelect.value;
+        renderAdminMenuList();
+    });
 
     function setupImageUploader(dropZoneElement: HTMLElement) {
         const inputElement = dropZoneElement.querySelector('.image-input-hidden') as HTMLInputElement;
@@ -541,16 +641,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                // Now that data is clean, assign it
                 appData = importedData as AppData;
-                
-                // Save the clean, migrated data
                 saveData();
                 
-                // Reset UI state and render
                 editingCategoryId = null;
                 currentSlideIndex = 0;
                 activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
+                adminSelectedCategoryIdForSort = appData.categories.length > 0 ? appData.categories[0].id : 'all';
                 
                 render();
                 alert('데이터를 성공적으로 불러왔습니다!');
@@ -600,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
         info.phone = adminPhone.value;
         info.facilities = adminFacilities.value;
         info.introText = adminIntroText.value;
+        info.originInfo = adminOriginInfo.value;
         info.introImages = adminIntroImageDropzones.map(el => (el.querySelector('.image-preview') as HTMLImageElement).src).filter(Boolean);
         saveData();
         render();
@@ -641,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 appData.categories = appData.categories.filter(cat => cat.id !== id);
                 if (activeCategoryId === id) activeCategoryId = firstCategoryId;
+                if (adminSelectedCategoryIdForSort === id) adminSelectedCategoryIdForSort = 'all';
                 saveData();
                 render();
             }
@@ -679,7 +778,11 @@ document.addEventListener('DOMContentLoaded', () => {
             options: adminMenuOptions.value
         };
         const existingIndex = appData.menu.findIndex(item => item.id === id);
-        if (existingIndex > -1) appData.menu[existingIndex] = newItem; else appData.menu.push(newItem);
+        if (existingIndex > -1) {
+            appData.menu[existingIndex] = newItem;
+        } else {
+            appData.menu.push(newItem);
+        }
         saveData();
         render();
         clearMenuForm();
@@ -773,6 +876,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPrice = basePrice + optionsPrice;
         footerTotalPrice.textContent = `${totalPrice.toLocaleString()}원`;
     });
+    
+    storeInfoView.addEventListener('click', e => {
+        const header = (e.target as HTMLElement).closest('.info-accordion-header');
+        if (header) {
+            const item = header.parentElement;
+            item?.classList.toggle('active');
+        }
+    });
 
     // Setup drag-to-scroll for menu tabs
     const slider = menuTabsContainer;
@@ -802,6 +913,114 @@ document.addEventListener('DOMContentLoaded', () => {
         slider.scrollLeft = scrollLeft - walk;
     });
 
+    // --- Drag and Drop Sorting Logic ---
+    function setupDragAndDrop<T extends {id: string | number}>(
+        container: HTMLElement,
+        getDataArray: () => T[],
+        onReorder: () => void
+    ) {
+        let draggedItem: HTMLElement | null = null;
+    
+        container.addEventListener('dragstart', (e) => {
+            const target = e.target as HTMLElement;
+            // Ensure we are dragging the correct item
+            if (target.classList.contains('admin-menu-item') || target.classList.contains('admin-category-item')) {
+                draggedItem = target;
+                setTimeout(() => {
+                    if(draggedItem) draggedItem.classList.add('dragging');
+                }, 0);
+            }
+        });
+    
+        container.addEventListener('dragend', () => {
+            if (draggedItem) {
+                draggedItem.classList.remove('dragging');
+            }
+            draggedItem = null;
+            // Clean up any lingering visual indicators
+            container.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+        });
+    
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!draggedItem) return;
+
+            const target = (e.target as HTMLElement).closest<HTMLElement>('.admin-menu-item, .admin-category-item');
+            
+            // Clear all previous indicators
+            container.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            if (target && target !== draggedItem) {
+                const rect = target.getBoundingClientRect();
+                const offsetY = e.clientY - rect.top;
+    
+                if (offsetY < rect.height / 2) {
+                    target.classList.add('drag-over-top');
+                } else {
+                    target.classList.add('drag-over-bottom');
+                }
+            }
+        });
+    
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!draggedItem) return;
+    
+            const dataArray = getDataArray();
+            const target = (e.target as HTMLElement).closest<HTMLElement>('.admin-menu-item, .admin-category-item');
+            
+            // Cleanup UI
+            container.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            draggedItem.classList.remove('dragging');
+            
+            const draggedId = draggedItem.dataset.id;
+            const targetId = target ? target.dataset.id : null;
+
+            if (draggedId) {
+                const draggedIndex = dataArray.findIndex(item => String(item.id) === draggedId);
+                if (draggedIndex === -1) { return; } // Should not happen
+
+                const [movedItem] = dataArray.splice(draggedIndex, 1);
+                
+                if (targetId && targetId !== draggedId) {
+                    let targetIndex = dataArray.findIndex(item => String(item.id) === targetId);
+                    
+                    if (targetIndex !== -1) {
+                         const rect = target!.getBoundingClientRect();
+                         const offsetY = e.clientY - rect.top;
+                    
+                        if (offsetY >= rect.height / 2) {
+                            targetIndex += 1;
+                        }
+                        dataArray.splice(targetIndex, 0, movedItem);
+                    } else {
+                        dataArray.push(movedItem);
+                    }
+                } else {
+                    dataArray.push(movedItem);
+                }
+                onReorder();
+            }
+            draggedItem = null;
+        });
+    }
+
+    function onCategoryReorder() {
+        saveData();
+        render();
+    }
+    
+    function onMenuReorder() {
+        saveData();
+        renderAdminMenuList(); // Only re-render the menu list to keep filter state
+    }
+
 
     loadData();
     if (!localStorage.getItem(DB_KEY)) {
@@ -814,4 +1033,10 @@ document.addEventListener('DOMContentLoaded', () => {
     adminHeroImageDropzones.forEach(setupImageUploader);
     adminIntroImageDropzones.forEach(setupImageUploader);
     setupImageUploader(adminMenuImageDropzone);
+    setupDragAndDrop(adminCategoryListContainer, () => appData.categories, onCategoryReorder);
+    setupDragAndDrop(adminMenuListContainer, () => {
+        return adminSelectedCategoryIdForSort === 'all'
+            ? appData.menu
+            : appData.menu.filter(item => item.categoryIds.includes(adminSelectedCategoryIdForSort));
+    }, onMenuReorder);
 });
