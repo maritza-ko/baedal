@@ -143,8 +143,12 @@ const adminMenuSortCategorySelect = document.getElementById('admin-menu-sort-cat
 const initialData: AppData = {
     storeInfo: {
         name: "딱마리치킨",
-        heroImages: ["https://i.ibb.co/LQr9xKx/kyochon-hero-1.jpg", "https://i.ibb.co/hK2V47h/kyochon-hero-2.jpg", "https://i.ibb.co/qY5JcBD/kyochon-hero-3.jpg"],
-        homeScreenImage: "https://i.ibb.co/bF9m2p6/baemin-home.png",
+        heroImages: [
+            "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=1000&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1626082910309-8ad1055f1345?q=80&w=1000&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1569058242253-92a9c5552db3?q=80&w=1000&auto=format&fit=crop"
+        ],
+        homeScreenImage: "https://user-images.githubusercontent.com/1259185/180232475-1f633512-6148-4853-858f-2d7f45f1642d.png",
         promoBannerMain: "무료배달X5회 혜택",
         rating: 4.7, reviewCount: 88,
         badges: ["소비쿠폰", "식약처 위생인증", "세스코 멤버스"],
@@ -158,7 +162,12 @@ const initialData: AppData = {
         hours: "매일 - 오후 12:00 ~ 밤 12:00", holidays: "연중무휴", phone: "050-7538-6538",
         facilities: "주차, 무선 인터넷",
         introText: "안녕하세요! 고객님~ 교촌 산본 1호점입니다.\n고객님들의 만족을 위해 최선을 다하고 있습니다.",
-        introImages: ["https://i.ibb.co/W2N2K2z/kyochon-intro-1.jpg", "https://i.ibb.co/wJMyMhB/kyochon-intro-2.jpg", "https://i.ibb.co/z5wF2Mh/kyochon-intro-3.jpg", "https://i.ibb.co/FqsxXN3/kyochon-intro-4.jpg"],
+        introImages: [
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1585517176484-08c1d23f7c46?q=80&w=800&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1512152272829-e3139592d56f?q=80&w=800&auto=format&fit=crop"
+        ],
         originInfo: "닭고기 (뼈, 순살): 국내산\n쌀: 국내산\n배추김치 (배추, 고춧가루): 국내산"
     },
     categories: [
@@ -170,7 +179,7 @@ const initialData: AppData = {
         { id: 'side', name: '사이드메뉴' }, 
         { id: 'all', name: '전메뉴' }
     ],
-    menu: [ { id: 1, categoryIds: ['popular'], name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://i.ibb.co/gR3d25R/kyochon-detail-menu.jpg', options: '음료추가|max_4\n콜라 245ml,1000\n콜라 355ml,1500\n콜라 500ml,2000\n콜라 1.25L,2500\n추가선택|max_5\n치킨무,1000\n양념소스,500\n머스타드소스,500' } ]
+    menu: [ { id: 1, categoryIds: ['popular'], name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://images.unsplash.com/photo-1604908176997-12c1b27d4928?q=80&w=600&auto=format&fit=crop', options: '음료추가|max_4\n콜라 245ml,1000\n콜라 355ml,1500\n콜라 500ml,2000\n콜라 1.25L,2500\n추가선택|max_5\n치킨무,1000\n양념소스,500\n머스타드소스,500' } ]
 };
 
 let appData: AppData;
