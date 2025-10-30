@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initialData: AppData = {
         storeInfo: {
-            name: "교촌치킨 산본1호점",
+            name: "딱마리치킨",
             heroImages: ["https://i.ibb.co/LQr9xKx/kyochon-hero-1.jpg", "https://i.ibb.co/hK2V47h/kyochon-hero-2.jpg", "https://i.ibb.co/qY5JcBD/kyochon-hero-3.jpg"],
             homeScreenImage: "https://i.ibb.co/bF9m2p6/baemin-home.png",
             promoBannerMain: "무료배달X5회 혜택",
