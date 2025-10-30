@@ -72,11 +72,48 @@ const initialData: AppData = {
     menu: [ { id: 1, categoryIds: ['popular'], name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://images.unsplash.com/photo-1604908176997-12c1b27d4928?q=80&w=600&auto=format&fit=crop', options: '음료추가|max_4\n콜라 245ml,1000\n콜라 355ml,1500\n콜라 500ml,2000\n콜라 1.25L,2500\n추가선택|max_5\n치킨무,1000\n양념소스,500\n머스타드소스,500' } ]
 };
 
-function initializeApp() {
+async function initializeApp() {
+    let appData: AppData;
+
+    async function loadData() {
+        const saved = localStorage.getItem(DB_KEY);
+        if (saved) {
+            appData = JSON.parse(saved) as AppData;
+            return;
+        }
+        try {
+            const res = await fetch('/db.json', { cache: 'no-store' });
+            if (!res.ok) throw new Error('fetch failed');
+            appData = (await res.json()) as AppData;
+            try { 
+                // Migration for safety, in case db.json is old format
+                const needsMigration = appData.menu.some(item => (item as any).categoryId !== undefined && !item.categoryIds);
+                if (needsMigration) {
+                    console.log("Old data format detected in db.json. Migrating...");
+                    appData.menu = appData.menu.map(item => {
+                        const oldItem = item as any;
+                        if (oldItem.categoryId !== undefined && !item.categoryIds) {
+                            const { categoryId, ...rest } = oldItem;
+                            return { ...rest, categoryIds: [categoryId] };
+                        }
+                        return item;
+                    });
+                }
+                localStorage.setItem(DB_KEY, JSON.stringify(appData)); 
+            } catch(e) {
+                 console.warn('Could not save fetched data to localStorage', e);
+            }
+        } catch (e) {
+            console.warn('db.json 로딩 실패 → initialData 사용', e);
+            appData = JSON.parse(JSON.stringify(initialData)) as AppData;
+        }
+    }
+
     try {
+        await loadData(); // Load data FIRST
+
         // --- App State ---
-        let appData: AppData;
-        let activeCategoryId: string | null = null;
+        let activeCategoryId: string | null = appData.categories.length > 0 ? appData.categories[0].id : null;
         let editingCategoryId: string | null = null;
         let adminSelectedCategoryIdForSort: string = 'all';
         let currentView: 'home' | 'customer' | 'admin' | 'store-info' | 'menu-detail' = 'home';
@@ -697,56 +734,6 @@ function initializeApp() {
             });
         }
         
-        async function loadAndApplyExternalData() {
-            let loadedData: AppData | null = null;
-            const savedData = localStorage.getItem(DB_KEY);
-
-            if (savedData) {
-                try {
-                    loadedData = JSON.parse(savedData) as AppData;
-                } catch (e) {
-                    console.error("Failed to parse data from localStorage", e);
-                    localStorage.removeItem(DB_KEY);
-                }
-            } 
-            
-            if (!loadedData) {
-                try {
-                    const response = await fetch('/db.json', { cache: 'no-store' });
-                    if (!response.ok) throw new Error(`Failed to fetch db.json: ${response.statusText}`);
-                    loadedData = await response.json() as AppData;
-                } catch (error) {
-                    console.warn("Could not load /db.json, using built-in initial data.", error);
-                    return;
-                }
-            }
-
-            if (loadedData) {
-                const needsMigration = loadedData.menu.some(item => (item as any).categoryId !== undefined && !item.categoryIds);
-                if (needsMigration) {
-                    console.log("Old data format detected. Migrating menu items...");
-                    loadedData.menu = loadedData.menu.map(item => {
-                        const oldItem = item as any;
-                        if (oldItem.categoryId !== undefined && !item.categoryIds) {
-                            const { categoryId, ...rest } = oldItem;
-                            return { ...rest, categoryIds: [categoryId] };
-                        }
-                        return item;
-                    });
-                }
-                if (!loadedData.storeInfo.originInfo) {
-                    loadedData.storeInfo.originInfo = initialData.storeInfo.originInfo;
-                }
-                
-                appData = loadedData;
-                saveData();
-                activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
-                adminSelectedCategoryIdForSort = 'all';
-                currentSlideIndex = 0;
-                render();
-            }
-        }
-        
         // --- Event Listener Attachments ---
         viewToggleBtn.addEventListener('click', () => { currentView === 'admin' ? showView('home') : showView('admin'); });
         chickenCategoryBtn.addEventListener('click', (e) => { e.preventDefault(); showView('customer'); });
@@ -983,13 +970,9 @@ function initializeApp() {
                 : appData.menu.filter(item => item.categoryIds.includes(adminSelectedCategoryIdForSort));
         }, () => { saveData(); renderAdminMenuList(); });
         
-        // --- Initial App Load ---
-        appData = JSON.parse(JSON.stringify(initialData));
-        activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
-        adminSelectedCategoryIdForSort = 'all';
+        // --- Final Render ---
         render();
         showView('home');
-        loadAndApplyExternalData();
         
     } catch (error) {
         console.error("An error occurred during application initialization:", error);
