@@ -1,0 +1,9 @@
+
+{
+  "headers": [
+    {
+      "source": "/db.json",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
+  ]
+}
