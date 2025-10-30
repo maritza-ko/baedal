@@ -174,49 +174,6 @@ const initialData: AppData = {
 };
 
 let appData: AppData;
-async function loadData() {
-    const savedData = localStorage.getItem(DB_KEY);
-
-    if (savedData) {
-        appData = JSON.parse(savedData) as AppData;
-    } else {
-        try {
-            const response = await fetch('/db.json', { cache: 'no-store' });
-            if (!response.ok) {
-                throw new Error(`Failed to fetch db.json: ${response.statusText}`);
-            }
-            appData = await response.json() as AppData;
-            console.log("Loaded initial data from /db.json");
-        } catch (error) {
-            console.warn("Could not load /db.json, using built-in initial data.", error);
-            appData = JSON.parse(JSON.stringify(initialData));
-        }
-    }
-
-    // Migration for users who have old data in localStorage or from db.json
-    const needsMigration = appData.menu.some(item => (item as any).categoryId !== undefined && !item.categoryIds);
-    
-    if (needsMigration) {
-        console.log("Old data format detected. Migrating menu items...");
-        appData.menu = appData.menu.map(item => {
-            const oldItem = item as any;
-            if (oldItem.categoryId !== undefined && !item.categoryIds) {
-                const { categoryId, ...rest } = oldItem;
-                return { ...rest, categoryIds: [categoryId] };
-            }
-            return item;
-        });
-        saveData(); // Save the migrated data back
-    }
-    
-    if (!appData.storeInfo.originInfo) {
-        appData.storeInfo.originInfo = initialData.storeInfo.originInfo;
-    }
-
-    // Set initial state variables
-    activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
-    adminSelectedCategoryIdForSort = appData.categories.length > 0 ? appData.categories[0].id : 'all';
-}
 
 function saveData() {
     try { localStorage.setItem(DB_KEY, JSON.stringify(appData)); } catch (e) {
@@ -1036,23 +993,86 @@ function onMenuReorder() {
     renderAdminMenuList(); // Only re-render the menu list to keep filter state
 }
 
-// Initial App Load
-(async () => {
-    await loadData();
-    if (!localStorage.getItem(DB_KEY)) {
-        saveData();
-    }
-    render();
-    showView('home');
+async function loadAndApplyExternalData() {
+    let loadedData: AppData | null = null;
+    const savedData = localStorage.getItem(DB_KEY);
 
-    setupImageUploader(adminHomeImageDropzone);
-    adminHeroImageDropzones.forEach(setupImageUploader);
-    adminIntroImageDropzones.forEach(setupImageUploader);
-    setupImageUploader(adminMenuImageDropzone);
-    setupDragAndDrop(adminCategoryListContainer, () => appData.categories, onCategoryReorder);
-    setupDragAndDrop(adminMenuListContainer, () => {
-        return adminSelectedCategoryIdForSort === 'all'
-            ? appData.menu
-            : appData.menu.filter(item => item.categoryIds.includes(adminSelectedCategoryIdForSort));
-    }, onMenuReorder);
-})();
+    if (savedData) {
+        try {
+            loadedData = JSON.parse(savedData) as AppData;
+        } catch (e) {
+            console.error("Failed to parse data from localStorage", e);
+            localStorage.removeItem(DB_KEY); // Clear corrupted data
+        }
+    } 
+    
+    if (!loadedData) { // Only fetch if localStorage is empty or corrupt
+        try {
+            const response = await fetch('/db.json', { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch db.json: ${response.statusText}`);
+            }
+            loadedData = await response.json() as AppData;
+            console.log("Loaded initial data from /db.json");
+        } catch (error) {
+            console.warn("Could not load any external data, sticking with built-in initial data.", error);
+            return; // Exit if no external data can be loaded; app is already running on initialData
+        }
+    }
+
+    if (loadedData) {
+        // Migration for old data format
+        const needsMigration = loadedData.menu.some(item => (item as any).categoryId !== undefined && !item.categoryIds);
+        if (needsMigration) {
+            console.log("Old data format detected. Migrating menu items...");
+            loadedData.menu = loadedData.menu.map(item => {
+                const oldItem = item as any;
+                if (oldItem.categoryId !== undefined && !item.categoryIds) {
+                    const { categoryId, ...rest } = oldItem;
+                    return { ...rest, categoryIds: [categoryId] };
+                }
+                return item;
+            });
+        }
+        
+        if (!loadedData.storeInfo.originInfo) {
+            loadedData.storeInfo.originInfo = initialData.storeInfo.originInfo;
+        }
+        
+        appData = loadedData;
+        saveData(); // Save the correct data (fetched or migrated) to localStorage
+        
+        // Re-initialize state variables and re-render with the new data
+        activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
+        adminSelectedCategoryIdForSort = appData.categories.length > 0 ? appData.categories[0].id : 'all';
+        currentSlideIndex = 0;
+        
+        render();
+        console.log("App updated with loaded data.");
+    }
+}
+
+// --- Initial App Load: Synchronous First Render ---
+// 1. Immediately initialize with built-in data to prevent a blank screen.
+appData = JSON.parse(JSON.stringify(initialData));
+activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
+adminSelectedCategoryIdForSort = appData.categories.length > 0 ? appData.categories[0].id : 'all';
+
+// 2. Perform the first render synchronously.
+render();
+showView('home');
+
+// 3. Setup all UI event listeners.
+setupImageUploader(adminHomeImageDropzone);
+adminHeroImageDropzones.forEach(setupImageUploader);
+adminIntroImageDropzones.forEach(setupImageUploader);
+setupImageUploader(adminMenuImageDropzone);
+setupDragAndDrop(adminCategoryListContainer, () => appData.categories, onCategoryReorder);
+setupDragAndDrop(adminMenuListContainer, () => {
+    return adminSelectedCategoryIdForSort === 'all'
+        ? appData.menu
+        : appData.menu.filter(item => item.categoryIds.includes(adminSelectedCategoryIdForSort));
+}, onMenuReorder);
+
+// 4. Asynchronously load external data (from localStorage or /db.json) and update the UI if successful.
+loadAndApplyExternalData();
