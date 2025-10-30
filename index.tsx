@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
     const DB_KEY = 'baedal_app_data_v4_kyochon_pixel_perfect';
 
@@ -25,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         introImages: string[];
     }
 
-    interface MenuItem { id: number; categoryId: string; name: string; tags: string[]; description: string; price: string; reviews: string | null; image: string; options?: string; }
-    interface MenuCategory { id: string; name: string; }
+    interface MenuItem { id: number; categoryIds: string[]; name: string; tags: string[]; description: string; price: string; reviews: string | null; image: string; options?: string; }
+    interface MenuCategory { id:string; name: string; }
     interface AppData { storeInfo: StoreInfo; menu: MenuItem[]; categories: MenuCategory[]; }
     
     let activeCategoryId: string | null = null;
@@ -124,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const menuItemForm = document.getElementById('menu-item-form') as HTMLFormElement;
     const adminMenuId = document.getElementById('admin-menu-id') as HTMLInputElement;
-    const adminMenuCategory = document.getElementById('admin-menu-category') as HTMLSelectElement;
+    const adminMenuCategoryCheckboxes = document.getElementById('admin-menu-category-checkboxes') as HTMLElement;
     const adminMenuName = document.getElementById('admin-menu-name') as HTMLInputElement;
     const adminMenuTags = document.getElementById('admin-menu-tags') as HTMLInputElement;
     const adminMenuDescription = document.getElementById('admin-menu-description') as HTMLTextAreaElement;
@@ -156,14 +157,39 @@ document.addEventListener('DOMContentLoaded', () => {
             introText: "안녕하세요! 고객님~ 교촌 산본 1호점입니다.\n고객님들의 만족을 위해 최선을 다하고 있습니다.",
             introImages: ["https://i.ibb.co/W2N2K2z/kyochon-intro-1.jpg", "https://i.ibb.co/wJMyMhB/kyochon-intro-2.jpg", "https://i.ibb.co/z5wF2Mh/kyochon-intro-3.jpg", "https://i.ibb.co/FqsxXN3/kyochon-intro-4.jpg"]
         },
-        categories: [{ id: 'popular', name: '인기 메뉴' }, { id: 'side', name: '사이드 메뉴' }],
-        menu: [ { id: 1, categoryId: 'popular', name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://i.ibb.co/gR3d25R/kyochon-detail-menu.jpg', options: '음료추가|max_4\n콜라 245ml,1000\n콜라 355ml,1500\n콜라 500ml,2000\n콜라 1.25L,2500\n추가선택|max_5\n치킨무,1000\n양념소스,500\n머스타드소스,500' } ]
+        categories: [
+            { id: 'popular', name: '인기메뉴' }, 
+            { id: 'fried', name: '후라이드' }, 
+            { id: 'seasoned', name: '양념치킨' }, 
+            { id: 'siseuning', name: '시즈닝' }, 
+            { id: 'set', name: '세트메뉴' }, 
+            { id: 'side', name: '사이드메뉴' }, 
+            { id: 'all', name: '전메뉴' }
+        ],
+        menu: [ { id: 1, categoryIds: ['popular'], name: '허니갈릭순살', tags: [], description: '꿀의 달콤함과 마늘의 알싸함이 조화로운 순살치킨(안심, 정육)', price: '26,000원', reviews: '150', image: 'https://i.ibb.co/gR3d25R/kyochon-detail-menu.jpg', options: '음료추가|max_4\n콜라 245ml,1000\n콜라 355ml,1500\n콜라 500ml,2000\n콜라 1.25L,2500\n추가선택|max_5\n치킨무,1000\n양념소스,500\n머스타드소스,500' } ]
     };
 
     let appData: AppData;
     function loadData() {
         const savedData = localStorage.getItem(DB_KEY);
         appData = savedData ? JSON.parse(savedData) as AppData : JSON.parse(JSON.stringify(initialData));
+
+        // Migration for users who have old data in localStorage
+        const needsMigration = appData.menu.some(item => (item as any).categoryId !== undefined && !item.categoryIds);
+        
+        if (needsMigration) {
+            console.log("Old data format detected in localStorage. Migrating menu items...");
+            appData.menu = appData.menu.map(item => {
+                const oldItem = item as any;
+                if (oldItem.categoryId !== undefined && !item.categoryIds) {
+                    const { categoryId, ...rest } = oldItem;
+                    return { ...rest, categoryIds: [categoryId] };
+                }
+                return item;
+            });
+            saveData(); // Save the migrated data back to localStorage
+        }
+
         activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
     }
     function saveData() {
@@ -239,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="menu-tab ${cat.id === activeCategoryId ? 'active' : ''}" data-category-id="${cat.id}">${cat.name}</button>
         `).join('');
 
-        const filteredMenu = menu.filter(item => item.categoryId === activeCategoryId);
+        const filteredMenu = activeCategoryId ? menu.filter(item => item.categoryIds.includes(activeCategoryId)) : menu;
         mainMenuList.innerHTML = filteredMenu.length > 0 ? filteredMenu.map(createMenuItemHTML).join('') : '<p>메뉴가 없습니다.</p>';
     }
 
@@ -272,8 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             groups.forEach(line => {
                 const lastCommaIndex = line.lastIndexOf(',');
                 
-                // An option line has a name and a price separated by the *last* comma.
-                if (lastCommaIndex > 0) { // It's an option item. `> 0` ensures there's a name before the comma.
+                if (lastCommaIndex > 0) { 
                     if (currentGroup) {
                         const name = line.substring(0, lastCommaIndex).trim();
                         const priceStr = line.substring(lastCommaIndex + 1).trim();
@@ -290,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>`;
                         currentGroup.element.innerHTML += optionHTML;
                     }
-                } else { // This is a group title
+                } else { 
                     if (currentGroup) {
                         detailMenuOptionsContainer.appendChild(currentGroup.element);
                         detailMenuOptionsContainer.insertAdjacentHTML('beforeend', '<div class="divider thick"></div>');
@@ -363,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         storeInfo.introImages.forEach((src, i) => { if (adminIntroImageDropzones[i]) updateImagePreview(adminIntroImageDropzones[i], src); });
         
         renderAdminCategoryList();
-        renderMenuCategoryDropdown();
+        renderMenuCategoryCheckboxes();
         adminMenuListContainer.innerHTML = appData.menu.map(createAdminMenuItemHTML).join('');
     }
 
@@ -386,16 +411,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }).join('');
      }
-    function renderMenuCategoryDropdown() {
-        adminMenuCategory.innerHTML = appData.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+    function renderMenuCategoryCheckboxes() {
+        adminMenuCategoryCheckboxes.innerHTML = appData.categories.map(cat => `
+            <div class="category-checkbox-item">
+                <input type="checkbox" id="cat-check-${cat.id}" value="${cat.id}" name="menu-categories">
+                <label for="cat-check-${cat.id}">${cat.name}</label>
+            </div>
+        `).join('');
     }
     function createAdminMenuItemHTML(item: MenuItem) { 
-        const categoryName = appData.categories.find(c => c.id === item.categoryId)?.name || 'N/A';
+        const categoryNames = item.categoryIds
+            .map(id => appData.categories.find(c => c.id === id)?.name)
+            .filter(Boolean)
+            .join(', ');
         return `
             <div class="admin-menu-item">
                 <div class="admin-menu-item-info">
                     <strong>${item.name}</strong>
-                    <span>${categoryName} | ${item.price}</span>
+                    <span>${categoryNames} | ${item.price}</span>
                 </div>
                 <div class="admin-menu-item-actions">
                     <button class="edit-btn" data-id="${item.id}">수정</button>
@@ -487,17 +520,37 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const text = event.target?.result as string;
                 if (!text) { throw new Error("파일을 읽을 수 없습니다."); }
-                const importedData = JSON.parse(text);
+                
+                let importedData = JSON.parse(text);
 
+                // Validate the basic structure
                 if (!importedData.storeInfo || !importedData.menu || !importedData.categories) {
-                    throw new Error("유효하지 않은 데이터 파일 형식입니다.");
+                    throw new Error("유효하지 않은 데이터 파일 형식입니다. storeInfo, menu, categories 키가 모두 필요합니다.");
                 }
 
+                // Perform migration directly on the imported data if necessary
+                const needsMigration = importedData.menu.some((item: any) => item.categoryId !== undefined && !item.categoryIds);
+                if (needsMigration) {
+                    console.log("Old data format detected in imported file. Migrating...");
+                    importedData.menu = importedData.menu.map((item: any) => {
+                        if (item.categoryId !== undefined && !item.categoryIds) {
+                            const { categoryId, ...rest } = item;
+                            return { ...rest, categoryIds: [categoryId] };
+                        }
+                        return item;
+                    });
+                }
+
+                // Now that data is clean, assign it
                 appData = importedData as AppData;
+                
+                // Save the clean, migrated data
                 saveData();
-                activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
+                
+                // Reset UI state and render
                 editingCategoryId = null;
                 currentSlideIndex = 0;
+                activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
                 
                 render();
                 alert('데이터를 성공적으로 불러왔습니다!');
@@ -571,9 +624,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (target.classList.contains('delete-category-btn')) {
              if (appData.categories.length <= 1) { alert('최소 한 개의 카테고리는 남겨두어야 합니다.'); return; }
-            if (confirm(`카테고리를 삭제하시겠습니까? 이 카테고리의 메뉴들은 첫번째 카테고리로 이동됩니다.`)) {
-                const firstCategoryId = appData.categories[0].id;
-                appData.menu.forEach(item => { if (item.categoryId === id) item.categoryId = firstCategoryId; });
+            if (confirm(`카테고리를 삭제하시겠습니까? 이 카테고리에만 속한 메뉴들은 다른 카테고리로 자동 이동됩니다.`)) {
+                const firstRemainingCategory = appData.categories.find(c => c.id !== id);
+                if (!firstRemainingCategory) {
+                    alert('오류: 남은 카테고리를 찾을 수 없습니다.');
+                    return;
+                }
+                const firstCategoryId = firstRemainingCategory.id;
+
+                appData.menu.forEach(item => {
+                    item.categoryIds = item.categoryIds.filter(catId => catId !== id);
+                    if (item.categoryIds.length === 0) {
+                        item.categoryIds.push(firstCategoryId);
+                    }
+                });
+                
                 appData.categories = appData.categories.filter(cat => cat.id !== id);
                 if (activeCategoryId === id) activeCategoryId = firstCategoryId;
                 saveData();
@@ -594,10 +659,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     menuItemForm.addEventListener('submit', (e) => {
         e.preventDefault();
+
+        const selectedCategoryIds = Array.from(adminMenuCategoryCheckboxes.querySelectorAll('input:checked')).map(el => (el as HTMLInputElement).value);
+        if (selectedCategoryIds.length === 0) {
+            alert('카테고리를 하나 이상 선택해주세요.');
+            return;
+        }
+
         const id = adminMenuId.value ? parseInt(adminMenuId.value) : Date.now();
         const newItem: MenuItem = {
             id: id,
-            categoryId: adminMenuCategory.value,
+            categoryIds: selectedCategoryIds,
             name: adminMenuName.value,
             tags: adminMenuTags.value.split(',').map(t => t.trim()).filter(Boolean),
             description: adminMenuDescription.value,
@@ -617,6 +689,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearMenuForm() {
         menuItemForm.reset();
         adminMenuId.value = '';
+        const checkboxes = adminMenuCategoryCheckboxes.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => (cb as HTMLInputElement).checked = false);
         updateImagePreview(adminMenuImageDropzone, '');
         adminMenuSubmitBtn.textContent = '메뉴 추가';
     }
@@ -636,7 +710,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemToEdit = appData.menu.find(item => item.id === id);
             if (itemToEdit) {
                 adminMenuId.value = String(itemToEdit.id);
-                adminMenuCategory.value = itemToEdit.categoryId;
+                const checkboxes = adminMenuCategoryCheckboxes.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    const checkbox = cb as HTMLInputElement;
+                    checkbox.checked = itemToEdit.categoryIds.includes(checkbox.value);
+                });
                 adminMenuName.value = itemToEdit.name;
                 adminMenuTags.value = itemToEdit.tags.join(', ');
                 adminMenuDescription.value = itemToEdit.description;
@@ -680,12 +758,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
             if (checkedCount > max) {
                 target.checked = false;
-                 // Price will not be updated if selection is invalid
                 return;
             }
         }
     
-        // Recalculate total price
         const basePrice = parsePrice(detailMenuPrice.textContent);
         let optionsPrice = 0;
         const checkedOptions = detailMenuOptionsContainer.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:checked');
@@ -697,6 +773,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPrice = basePrice + optionsPrice;
         footerTotalPrice.textContent = `${totalPrice.toLocaleString()}원`;
     });
+
+    // Setup drag-to-scroll for menu tabs
+    const slider = menuTabsContainer;
+    let isDown = false;
+    let startX: number;
+    let scrollLeft: number;
+
+    slider.addEventListener('mousedown', (e) => {
+        isDown = true;
+        slider.classList.add('dragging');
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+    });
+    slider.addEventListener('mouseleave', () => {
+        isDown = false;
+        slider.classList.remove('dragging');
+    });
+    slider.addEventListener('mouseup', () => {
+        isDown = false;
+        slider.classList.remove('dragging');
+    });
+    slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX);
+        slider.scrollLeft = scrollLeft - walk;
+    });
+
 
     loadData();
     if (!localStorage.getItem(DB_KEY)) {
