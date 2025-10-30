@@ -248,7 +248,27 @@ body {
 
 /* --- MENU DETAIL VIEW --- */
 #menu-detail-view { background-color: var(--card-background); }
-#menu-detail-view .app-header { background: transparent; border-bottom: none; position: absolute; top: 0; left: 0; width: 100%; }
+#menu-detail-view .app-header {
+    background: transparent;
+    border-bottom: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px 16px; /* Restore padding */
+}
+
+#back-to-customer-from-detail-btn {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .menu-detail-main { padding-bottom: 120px; } /* Space for footer */
 #detail-menu-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; }
 .menu-detail-info-box { padding: 24px 16px; }

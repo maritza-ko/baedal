@@ -1,5 +1,5 @@
 {
-  "name": "배달앱-ui-목업-(baedal-app-ui-mockup)",
+  "name": "baedal-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,13 +8,8 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-
-  },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0"
   }
 }
