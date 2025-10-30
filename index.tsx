@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
     const DB_KEY = 'baedal_app_data_v4_kyochon_pixel_perfect';
 
     // Type definitions
@@ -175,15 +176,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let appData: AppData;
-    function loadData() {
+    async function loadData() {
         const savedData = localStorage.getItem(DB_KEY);
-        appData = savedData ? JSON.parse(savedData) as AppData : JSON.parse(JSON.stringify(initialData));
 
-        // Migration for users who have old data in localStorage
+        if (savedData) {
+            appData = JSON.parse(savedData) as AppData;
+        } else {
+            try {
+                const response = await fetch('/db.json', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch db.json: ${response.statusText}`);
+                }
+                appData = await response.json() as AppData;
+                console.log("Loaded initial data from /db.json");
+            } catch (error) {
+                console.warn("Could not load /db.json, using built-in initial data.", error);
+                appData = JSON.parse(JSON.stringify(initialData));
+            }
+        }
+
+        // Migration for users who have old data in localStorage or from db.json
         const needsMigration = appData.menu.some(item => (item as any).categoryId !== undefined && !item.categoryIds);
         
         if (needsMigration) {
-            console.log("Old data format detected in localStorage. Migrating menu items...");
+            console.log("Old data format detected. Migrating menu items...");
             appData.menu = appData.menu.map(item => {
                 const oldItem = item as any;
                 if (oldItem.categoryId !== undefined && !item.categoryIds) {
@@ -192,17 +208,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return item;
             });
-            saveData(); // Save the migrated data back to localStorage
+            saveData(); // Save the migrated data back
         }
         
         if (!appData.storeInfo.originInfo) {
             appData.storeInfo.originInfo = initialData.storeInfo.originInfo;
         }
 
-
+        // Set initial state variables
         activeCategoryId = appData.categories.length > 0 ? appData.categories[0].id : null;
         adminSelectedCategoryIdForSort = appData.categories.length > 0 ? appData.categories[0].id : 'all';
     }
+
     function saveData() {
         try { localStorage.setItem(DB_KEY, JSON.stringify(appData)); } catch (e) {
             console.error("Error saving data", e);
@@ -1021,8 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAdminMenuList(); // Only re-render the menu list to keep filter state
     }
 
-
-    loadData();
+    await loadData();
     if (!localStorage.getItem(DB_KEY)) {
         saveData();
     }
